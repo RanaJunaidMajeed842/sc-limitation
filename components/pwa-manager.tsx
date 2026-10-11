@@ -158,7 +158,7 @@ export function PwaManager() {
     <div className="mb-6 space-y-3">
       <div className="flex flex-col gap-3 rounded-xl border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-primary">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-primary-text">
             <Smartphone className="size-4" />
           </span>
           <div>
@@ -208,7 +208,7 @@ export function PwaManager() {
               <div className="mt-5 space-y-5 text-sm">
                 <div className={ios ? "rounded-xl border bg-muted/50 p-4" : ""}>
                   <h3 className="mb-2 flex items-center gap-2 font-semibold">
-                    <Share2 className="size-4 text-primary" /> iPhone & iPad
+                    <Share2 className="size-4 text-primary-text" /> iPhone & iPad
                   </h3>
                   <ol className="ml-4 list-decimal space-y-2 text-muted-foreground">
                     <li>Open this website in Safari.</li>
@@ -264,7 +264,7 @@ export function PwaManager() {
           </span>
         ) : ready ? (
           <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="size-3.5 text-primary" /> Ready for offline
+            <CheckCircle2 className="size-3.5 text-primary-text" /> Ready for offline
             use
           </span>
         ) : (

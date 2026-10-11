@@ -234,11 +234,11 @@ export function Calculator() {
               <Scale className="size-5" />
             </span>
             <span className="text-xl font-semibold tracking-tight">
-              Limitation<span className="text-primary">.</span>
+              Limitation<span className="text-primary-text">.</span>
             </span>
           </a>
           <div className="flex items-center gap-4">
-            <span className="hidden items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-primary sm:flex">
+            <span className="hidden items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-primary-text sm:flex">
               <Heart className="size-3.5" /> Free for the legal community
             </span>
             <Button
@@ -262,7 +262,7 @@ export function Calculator() {
         </div>
         <div className="mb-9 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-primary">
+            <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-primary-text">
               <span className="size-1.5 rounded-full bg-primary" /> Supreme
               Court filing assistant
             </p>
@@ -276,7 +276,7 @@ export function Calculator() {
             </p>
           </div>
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="size-4 text-primary" /> Your case details
+            <ShieldCheck className="size-4 text-primary-text" /> Your case details
             stay in your browser
           </span>
         </div>
@@ -289,7 +289,7 @@ export function Calculator() {
             <CardHeader className="border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <CalendarDays className="size-5 text-primary" /> Case timeline
+                  <CalendarDays className="size-5 text-primary-text" /> Case timeline
                 </CardTitle>
                 <span className="text-xs text-muted-foreground">
                   01 / Enter details
@@ -324,7 +324,7 @@ export function Calculator() {
                     <div key={key} className="min-w-0 space-y-2">
                       <Label htmlFor={key}>
                         {label}{" "}
-                        <span className="text-primary" aria-hidden="true">
+                        <span className="text-primary-text" aria-hidden="true">
                           *
                         </span>
                       </Label>
@@ -354,7 +354,7 @@ export function Calculator() {
                     <div className="space-y-2">
                       <Label htmlFor="givenCopyTime">
                         Given copy time (days){" "}
-                        <span className="text-primary" aria-hidden="true">
+                        <span className="text-primary-text" aria-hidden="true">
                           *
                         </span>
                       </Label>
@@ -448,7 +448,7 @@ export function Calculator() {
                 <CardHeader className="border-b">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      <FileCheck2 className="size-5 text-primary" /> Your
+                      <FileCheck2 className="size-5 text-primary-text" /> Your
                       calculation
                     </CardTitle>
                     <span className="text-xs text-muted-foreground">
@@ -459,7 +459,7 @@ export function Calculator() {
                 {!result ? (
                   <div className="dot-grid flex min-h-80 flex-col items-center justify-center px-7 py-10 text-center">
                     <div className="mb-5 flex size-16 items-center justify-center rounded-2xl border bg-card shadow-sm">
-                      <Scale className="size-7 text-primary" />
+                      <Scale className="size-7 text-primary-text" />
                     </div>
                     <h3 className="display-heading text-2xl">
                       Clarity starts with a timeline.
@@ -479,7 +479,7 @@ export function Calculator() {
                       className={`rounded-xl border p-5 ${late ? "border-destructive/25 bg-destructive/5" : "border-primary/20 bg-primary/5"}`}
                     >
                       <div
-                        className={`mb-3 flex items-center gap-2 text-sm font-semibold ${late ? "text-destructive" : "text-primary"}`}
+                        className={`mb-3 flex items-center gap-2 text-sm font-semibold ${late ? "text-destructive" : "text-primary-text"}`}
                       >
                         {late ? (
                           <TriangleAlert className="size-4" />
@@ -610,7 +610,7 @@ export function Calculator() {
                           </p>
                           <p
                             role="status"
-                            className="mt-3 text-sm text-primary"
+                            className="mt-3 text-sm text-primary-text"
                           >
                             {notice}
                           </p>
@@ -626,7 +626,7 @@ export function Calculator() {
               aria-live="polite"
               className={
                 notice
-                  ? "flex items-center gap-2 text-sm text-primary"
+                  ? "flex items-center gap-2 text-sm text-primary-text"
                   : "sr-only"
               }
             >
@@ -634,7 +634,7 @@ export function Calculator() {
               {notice}
             </p>
             <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
-              <CircleHelp className="mt-0.5 size-4 shrink-0 text-primary" />
+              <CircleHelp className="mt-0.5 size-4 shrink-0 text-primary-text" />
               <div>
                 <h3 className="mb-1 text-sm font-semibold">
                   A calculation aid for practitioners
@@ -665,7 +665,7 @@ export function Calculator() {
             },
           ].map(({ icon: Icon, title, text }) => (
             <div key={title} className="flex gap-3">
-              <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
+              <Icon className="mt-0.5 size-4 shrink-0 text-primary-text" />
               <div>
                 <h3 className="text-xs font-semibold">{title}</h3>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">

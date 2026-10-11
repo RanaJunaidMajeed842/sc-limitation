@@ -12,9 +12,9 @@ export function createReport(result: CalculationResult): File {
   const width = 105;
   const margin = 9;
   const contentWidth = width - margin * 2;
-  const accent: [number, number, number] = late ? [151, 49, 43] : [23, 78, 64];
-  const ink: [number, number, number] = [40, 55, 48];
-  const muted: [number, number, number] = [100, 112, 105];
+  const accent: [number, number, number] = late ? [153, 48, 31] : [100, 21, 43];
+  const ink: [number, number, number] = [48, 35, 35];
+  const muted: [number, number, number] = [117, 102, 94];
 
   // Measure wrapped content first so even long references stay on one ticket.
   const measure = new jsPDF();
@@ -55,7 +55,7 @@ export function createReport(result: CalculationResult): File {
   });
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, width, height, "F");
-  doc.setDrawColor(223, 229, 223);
+  doc.setDrawColor(223, 212, 200);
   doc.roundedRect(3, 3, width - 6, height - 6, 3, 3, "S");
 
   // The outcome is the first and largest element, above all case details.
@@ -89,7 +89,7 @@ export function createReport(result: CalculationResult): File {
     { align: "center" },
   );
 
-  doc.setDrawColor(190, 203, 193);
+  doc.setDrawColor(196, 177, 155);
   doc.setLineDashPattern([1, 1.2], 0);
   doc.line(7, 47, width - 7, 47);
   doc.setLineDashPattern([], 0);
@@ -117,7 +117,7 @@ export function createReport(result: CalculationResult): File {
       const total = label === "Remaining limitation";
       if (total || index % 2 === 0) {
         doc.setFillColor(
-          ...((total ? accent : [245, 248, 245]) as [number, number, number]),
+          ...((total ? accent : [248, 245, 239]) as [number, number, number]),
         );
         doc.roundedRect(margin - 2, y - 3.8, contentWidth + 4, 5.8, 1, 1, "F");
       }
@@ -140,7 +140,7 @@ export function createReport(result: CalculationResult): File {
     ["Copy received", formatDate(result.copyGettingDate)],
   ]);
   section("Calculation breakdown", resultRows(result));
-  doc.setFillColor(245, 248, 245);
+  doc.setFillColor(248, 245, 239);
   doc.roundedRect(
     margin - 2,
     y - 3,
@@ -163,7 +163,7 @@ export function createReport(result: CalculationResult): File {
   doc.setTextColor(...muted);
   doc.text(note, margin, y, { lineHeightFactor: 1.308 });
   y += note.length * 3 + 5;
-  doc.setDrawColor(223, 229, 223);
+  doc.setDrawColor(223, 212, 200);
   doc.line(margin, y - 2, width - margin, y - 2);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
