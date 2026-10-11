@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SC Limitation Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,400&display=swap');
+
+        :root {
+            /* Light theme colors */
+            --bg-gradient-start: #f8fafc;
+            --bg-gradient-end: #e2e8f0;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --accent-green: #14532d; /* Subtle bold forest green */
+            --accent-green-hover: #166534;
+            --accent-green-light: #e8f5e9;
+            --border-color: #cbd5e1;
+            --input-bg: #ffffff;
+            --input-focus-shadow: rgba(20, 83, 45, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --card-shadow: 0 20px 40px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
+            --placeholder-border: dashed 2px #cbd5e1;
+            --info-bullet-color: #22c55e;
+            
+            --result-notbarred-bg: #f0fdf4;
+            --result-notbarred-text: #166534;
+            --result-notbarred-border: #86efac;
+            --result-timebarred-bg: #fef2f2;
+            --result-timebarred-text: #991b1b;
+            --result-timebarred-border: #fca5a5;
+        }
+
+        body.dark-theme {
+            /* Dark theme colors */
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-end: #020617;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-green: #22c55e; /* Brighter bold green for dark mode contrast */
+            --accent-green-hover: #4ade80;
+            --accent-green-light: #064e3b;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+            --input-focus-shadow: rgba(34, 197, 94, 0.2);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
+            --placeholder-border: dashed 2px #334155;
+            --info-bullet-color: #22c55e;
+
+            --result-notbarred-bg: #064e3b;
+            --result-notbarred-text: #f0fdf4;
+            --result-notbarred-border: #15803d;
+            --result-timebarred-bg: #7f1d1d;
+            --result-timebarred-text: #fef2f2;
+            --result-timebarred-border: #b91c1c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 28px;
+        }
+        
+        h1 {
+            font-family: 'Lora', Georgia, serif;
+            color: var(--accent-green);
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--border-color);
+            transform: scale(1.05);
+        }
+
+        .theme-toggle-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Grid Layout */
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 40px;
+        }
+
+        .calculator-left {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .calculator-right {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            font-family: inherit;
+            outline: none;
+        }
+        
+        input:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px var(--input-focus-shadow);
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        button.calculate-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        
+        button.calculate-btn:hover {
+            background: var(--accent-green-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+        
+        button.calculate-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Placeholder Card style */
+        .placeholder-card {
+            border: var(--placeholder-border);
+            border-radius: 12px;
+            padding: 36px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 350px;
+        }
+
+        .placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.8;
+        }
+
+        .placeholder-card h3 {
+            font-family: 'Lora', Georgia, serif;
+            font-size: 20px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .placeholder-card p {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            max-width: 280px;
+        }
+
+        .placeholder-card .info-list {
+            text-align: left;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .placeholder-card .info-item {
+            display: flex;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        .placeholder-card .info-bullet {
+            color: var(--info-bullet-color);
+            font-weight: bold;
+        }
+
+        /* Result container styling */
+        .result {
+            padding: 32px 24px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .result.show {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result.timebarred {
+            background: var(--result-timebarred-bg);
+            border: 2px solid var(--result-timebarred-border);
+            color: var(--result-timebarred-text);
+        }
+        
+        .result.notbarred {
+            background: var(--result-notbarred-bg);
+            border: 2px solid var(--result-notbarred-border);
+            color: var(--result-notbarred-text);
+        }
+        
+        .result h2 {
+            font-family: 'Lora', Georgia, serif;
+            font-size: 24px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .days {
+            font-size: 38px;
+            font-weight: 800;
+            margin: 14px 0;
+            letter-spacing: -0.5px;
+        }
+        
+        .breakdown {
+            margin-top: 24px;
+            text-align: left;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        
+        .breakdown strong {
+            color: var(--text-primary);
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 24px;
+                max-width: 620px;
+            }
+            .header-bar {
+                margin-bottom: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .calculator-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .placeholder-card {
+                display: none !important;
+            }
+            .result {
+                padding: 24px 16px;
+                margin-top: 10px;
+            }
+            .days {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Title & Theme Switcher -->
+        <div class="header-bar">
+            <div class="title-area">
+                <h1>⚖️ Limitation Calculator</h1>
+                <p class="subtitle">Supreme Court Case Filing Assistant</p>
+            </div>
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+                <span class="theme-icon"></span>
+            </button>
+        </div>
+        
+        <!-- Calculator Grid Layout -->
+        <div class="calculator-grid">
+            <!-- Left Side: Inputs & Action Button -->
+            <div class="calculator-left">
+                <div class="form-group">
+                    <label for="impugnedDate">Date of Impugned Order</label>
+                    <input type="date" id="impugnedDate">
+                </div>
+                
+                <div class="form-group">
+                    <label for="filingDate">Date of Filing</label>
+                    <input type="date" id="filingDate">
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label for="copyApplyDate">Copy Apply Date</label>
+                        <input type="date" id="copyApplyDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="copyGettingDate">Copy Getting Date</label>
+                        <input type="date" id="copyGettingDate">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label for="givenCopyTime">Given Copy Time (Days)</label>
+                        <input type="number" id="givenCopyTime" min="0" placeholder="e.g. 30">
+                    </div>
+                    <div class="form-group">
+                        <label for="publicHolidays">Public Holidays</label>
+                        <input type="number" id="publicHolidays" min="0" placeholder="e.g. 5">
+                    </div>
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateLimitation()">Calculate Limitation</button>
+            </div>
+            
+            <!-- Right Side: Placeholder and Results -->
+            <div class="calculator-right">
+                <!-- Initial State Placeholder (Desktop only) -->
+                <div id="placeholder-card" class="placeholder-card">
+                    <div class="placeholder-icon">⚖️</div>
+                    <h3>Awaiting Calculation</h3>
+                    <p>Enter the case timeline details on the left and click calculate to check the limitation status.</p>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-bullet">•</span>
+                            <span>Automatically excludes copy-getting delays.</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-bullet">•</span>
+                            <span>Applies public holiday exemptions.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Final Calculations Result -->
+                <div id="result" class="result">
+                    <h2 id="resultTitle"></h2>
+                    <div class="days" id="resultDays"></div>
+                    <div class="breakdown" id="breakdown"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+        
+        function daysBetween(d1, d2) {
+            const oneDay = 24 * 60 * 60 * 1000;
+            return Math.round((d2 - d1) / oneDay);
+        }
+        
+        function calculateLimitation() {
+            const impugnedDate = parseDate(document.getElementById('impugnedDate').value);
+            const filingDate = parseDate(document.getElementById('filingDate').value);
+            const copyApplyDate = parseDate(document.getElementById('copyApplyDate').value);
+            const copyGettingDate = parseDate(document.getElementById('copyGettingDate').value);
+            const givenCopyTime = parseInt(document.getElementById('givenCopyTime').value) || 0;
+            const publicHolidays = parseInt(document.getElementById('publicHolidays').value) || 0;
+            
+            if (!impugnedDate || !filingDate || !copyApplyDate || !copyGettingDate) {
+                alert('Please fill in all date fields.');
+                return;
+            }
+            
+            if (copyGettingDate < copyApplyDate) {
+                alert('Copy Getting Date must be on or after Copy Apply Date.');
+                return;
+            }
+            
+            if (filingDate < impugnedDate) {
+                alert('Date of Filing must be on or after Date of Impugned Order.');
+                return;
+            }
+            
+            // Step 1: Days actually consumed in obtaining the copy
+            const copyDaysConsumed = daysBetween(copyApplyDate, copyGettingDate);
+            
+            // Step 2: Total copy time consumed (given + actual)
+            const totalCopyTime = givenCopyTime + copyDaysConsumed;
+            
+            // Step 3: Total time consumed in filing (raw delay minus public holidays)
+            const rawFilingDays = daysBetween(impugnedDate, filingDate);
+            const totalTimeConsumed = rawFilingDays - publicHolidays;
+            
+            // Step 4: Remaining limitation days
+            const remainingDays = totalCopyTime - totalTimeConsumed;
+            
+            // Display results
+            const resultDiv = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDays = document.getElementById('resultDays');
+            const breakdown = document.getElementById('breakdown');
+            const placeholderCard = document.getElementById('placeholder-card');
+            
+            resultDiv.classList.remove('timebarred', 'notbarred', 'show');
+            
+            if (remainingDays < 0) {
+                resultDiv.classList.add('timebarred', 'show');
+                resultTitle.textContent = 'CASE IS TIME-BARRED';
+                resultDays.textContent = remainingDays + ' Days';
+            } else {
+                resultDiv.classList.add('notbarred', 'show');
+                resultTitle.textContent = 'CASE IS NOT TIME-BARRED';
+                resultDays.textContent = remainingDays + ' Days Remaining';
+            }
+            
+            breakdown.innerHTML = `
+                <strong>Calculation Breakdown:</strong><br>
+                📄 Copy Getting Time: <strong>${copyDaysConsumed}</strong> days<br>
+                📄 Given Copy Time: <strong>${givenCopyTime}</strong> days<br>
+                📄 Total Copy Time: <strong>${totalCopyTime}</strong> days<br><br>
+                📅 Filing Delay (raw): <strong>${rawFilingDays}</strong> days<br>
+                🏛️ Public Holidays Excluded: <strong>${publicHolidays}</strong> days<br>
+                📅 Total Time Consumed: <strong>${totalTimeConsumed}</strong> days<br><br>
+                ⚖️ Remaining Limitation: <strong>${remainingDays}</strong> days
+            `;
+
+            // Hide the placeholder card on desktop
+            if (placeholderCard) {
+                placeholderCard.style.display = 'none';
+            }
+        }
+
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const body = document.body;
+
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-theme');
+            updateThemeIcon(true);
+        } else {
+            updateThemeIcon(false);
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const isDark = body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        });
+
+        function updateThemeIcon(isDark) {
+            const iconSpan = themeToggleBtn.querySelector('.theme-icon');
+            if (isDark) {
+                // Sun Icon
+                iconSpan.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; display: block;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.95 4.95l1.59 1.59m10.92 10.92l1.59 1.59M3 12h2.25m13.5 0H21M4.95 19.05l1.59-1.59m10.92-10.92l1.59-1.59M12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5z" />
+                    </svg>
+                `;
+            } else {
+                // Moon Icon
+                iconSpan.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; display: block;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                    </svg>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
