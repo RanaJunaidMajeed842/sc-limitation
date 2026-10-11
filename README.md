@@ -50,3 +50,37 @@ The theme preference alone is saved in local storage. Changing a calculation inp
 Editable shadcn/ui components are in `components/ui`; `components.json` configures the shadcn CLI. The interface supports light/dark themes, native mobile date pickers, keyboard navigation, accessible share dialogs, inline errors and reduced motion.
 
 Deploy as a standard Next.js application on any compatible host. No environment variables, database or paid service is required.
+
+## Install on Android and iOS
+
+The calculator is an installable Progressive Web App. Deploy it to an **HTTPS** URL, visit it online, and wait for **Ready for offline use**. Users can then install it:
+
+- **Android:** Tap **Install app**, then **Install on this device** if offered. Alternatively, use Chrome's menu → **Install app** or **Add to Home screen**.
+- **iPhone / iPad:** Open the URL in Safari, tap the browser's **Share** button → **Add to Home Screen** → **Add**.
+
+The home-screen icon opens the app in its own window. iOS uses the browser's installation menu rather than a programmable install prompt. In-app browsers such as WhatsApp may require opening the link in Safari or Chrome first. These are browser-installed apps; app-store listings and APK/IPA packaging are separate distribution options.
+
+### Offline behavior and updates
+
+`npm run build` generates Android, maskable and Apple PNG icons, builds Next.js, then generates `public/sw.js` with the current build's asset list. The worker caches the calculator page and **all** production JS/CSS chunks, including lazy-loaded PDF code. Calculation and first-time PDF export work after an offline restart once setup completes. WhatsApp and sending reports through online services still need connectivity. Only app assets are cached; case inputs remain in memory and clear when the app reloads.
+
+The worker registers only in production, to avoid caching development code. To test locally:
+
+```sh
+npm run build
+npm start
+```
+
+`http://localhost:3000` supports service workers on the development computer. A phone visiting an HTTP LAN address does **not** qualify: use a deployed HTTPS URL or a trusted HTTPS development setup. Serve the entire app at the domain root; manifest and worker scope use `/`.
+
+New builds generate a new cache version. **Update available** lets users choose when to reload, with a reminder that current inputs will clear. Updates never force a reload mid-calculation. Browser storage can be cleared or evicted; reconnect online if offline assets are removed. `/sw.js` is served with `Cache-Control: no-store`; retain these response headers on your host.
+
+### Browser verification
+
+After building, run:
+
+```sh
+npm run test:pwa
+```
+
+The tests use locally installed Chrome, launch a production server on port 3100 and verify icons/metadata, offline reload and PDF download, mobile width, iOS installation guidance, and install-prompt handling. Set `PLAYWRIGHT_CHANNEL=msedge` to use Edge. iOS instructions are tested using a simulated iPhone user agent; actual home-screen installation and OS share sheets should also be checked on physical Android/iOS devices after HTTPS deployment.

@@ -51,6 +51,7 @@ import {
   type FieldErrors,
 } from "@/lib/calculator";
 import { siteConfig } from "@/lib/site-config";
+import { PwaManager } from "@/components/pwa-manager";
 
 type FormValues = Omit<CalculationInput, "givenCopyTime" | "publicHolidays"> & {
   givenCopyTime: string;
@@ -279,6 +280,7 @@ export function Calculator() {
             stay in your browser
           </span>
         </div>
+        <PwaManager />
         <div
           id="calculator"
           className="grid scroll-mt-5 items-start gap-6 lg:grid-cols-[1.12fr_1fr]"
