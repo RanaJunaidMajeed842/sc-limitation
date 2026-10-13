@@ -53,6 +53,7 @@ import {
 } from "@/lib/calculator";
 import { siteConfig } from "@/lib/site-config";
 import { PwaManager } from "@/components/pwa-manager";
+import { RelevantLaws } from "@/components/relevant-laws";
 
 type FormValues = Omit<CalculationInput, "givenCopyTime" | "publicHolidays"> & {
   givenCopyTime: string;
@@ -278,10 +279,13 @@ export function Calculator() {
               a report in seconds.
             </p>
           </div>
-          <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="size-4 text-primary-text" /> Your case details
-            stay in your browser
-          </span>
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <RelevantLaws />
+            <span className="flex items-center gap-2 text-xs text-muted-foreground">
+              <ShieldCheck className="size-4 text-primary-text" /> Your case details
+              stay in your browser
+            </span>
+          </div>
         </div>
         <PwaManager />
         <div

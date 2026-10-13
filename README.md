@@ -56,6 +56,8 @@ The theme preference alone is saved in local storage. Changing a calculation inp
 
 Editable shadcn/ui components are in `components/ui`; `components.json` configures the shadcn CLI. The interface supports light/dark themes, native mobile date pickers, keyboard navigation, accessible share dialogs, inline errors and reduced motion.
 
+**Relevant laws** opens a responsive reading dialog based on the owner-supplied memorandum of 13 October 2026. It includes applicable instruments, reported filing periods, Limitation Act provisions, computation steps, delay authorities, filing checks and grouped source links. Mobile uses a horizontally scrollable contents bar; desktop uses a side navigation alongside a bounded reading column. The reference is bundled with the app for offline reading; external source links need internet. Source caveats, legacy FAQ figures and unconfirmed 2025 periods are explicitly labelled. Text and citations are editable in `lib/legal-reference.ts` and `components/relevant-laws.tsx`.
+
 Deploy as a standard Next.js application on any compatible host. No environment variables, database or paid service is required.
 
 ## Install on Android and iOS
