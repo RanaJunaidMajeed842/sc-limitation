@@ -43,6 +43,7 @@ import {
 import {
   calculate,
   calculationNote,
+  copyTimeDisclaimer,
   formatDate,
   resultRows,
   validateInput,
@@ -203,6 +204,7 @@ export function Calculator() {
       `Copy received: ${formatDate(result.copyGettingDate)}`,
       ...resultRows(result).map(([label, value]) => `${label}: ${value}`),
       `Formula: ${result.givenCopyTime} + ${result.copyDaysConsumed} - ${result.rawFilingDays} + ${result.publicHolidays} = ${result.remainingDays} days`,
+      copyTimeDisclaimer(result),
       calculationNote,
     ]
       .filter(Boolean)
@@ -214,6 +216,7 @@ export function Calculator() {
     );
   }
   const late = !!result && result.remainingDays < 0;
+  const copyDisclaimer = result ? copyTimeDisclaimer(result) : null;
 
   return (
     <div className="min-h-dvh">
@@ -379,7 +382,7 @@ export function Calculator() {
                         className={`text-xs ${errors.givenCopyTime ? "text-destructive" : "text-muted-foreground"}`}
                       >
                         {errors.givenCopyTime ||
-                          "Allowance used in the original formula"}
+                          "Copy applications after this elapsed-day period receive no copy-time extension"}
                       </p>
                     </div>
                     <div className="space-y-2">
@@ -530,6 +533,10 @@ export function Calculator() {
                         </div>
                       ))}
                     </dl>
+                    {copyDisclaimer && <aside aria-label="Copy-time adjustment" className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-xs leading-5 text-muted-foreground">
+                      <CircleHelp className="mt-0.5 size-4 shrink-0 text-primary-text" />
+                      <div><p className="font-semibold text-foreground">Copy-time adjustment</p><p className="mt-1">{copyDisclaimer}</p></div>
+                    </aside>}
                     <div className="mt-4 rounded-lg bg-muted p-3 text-xs leading-5 text-muted-foreground">
                       <p className="font-medium text-foreground">
                         How it adds up
@@ -542,7 +549,7 @@ export function Calculator() {
                         </strong>
                       </p>
                       <p>
-                        Given copy time + copy duration − filing period +
+                        Given copy time + counted copy time − filing period +
                         holidays
                       </p>
                     </div>

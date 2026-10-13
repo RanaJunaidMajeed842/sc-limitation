@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import {
   calculationNote,
+  copyTimeDisclaimer,
   formatDate,
   resultRows,
   type CalculationResult,
@@ -33,6 +34,8 @@ export function createReport(result: CalculationResult): File {
   measure.setFontSize(6.5);
   const note: string[] = measure.splitTextToSize(calculationNote, contentWidth);
   measure.setFontSize(7);
+  const disclaimer = copyTimeDisclaimer(result);
+  const adjustment: string[] = disclaimer ? measure.splitTextToSize(disclaimer, contentWidth) : [];
   const credits: string[] = measure.splitTextToSize(
     `Built by ${siteConfig.builder}`,
     contentWidth,
@@ -42,7 +45,8 @@ export function createReport(result: CalculationResult): File {
     reference.length * 4 +
     formula.length * 3.8 +
     note.length * 3 +
-    credits.length * 3.3;
+    credits.length * 3.3 +
+    (adjustment.length ? 10 + adjustment.length * 3.3 : 0);
   const doc = new jsPDF({
     unit: "mm",
     format: [width, height],
@@ -159,6 +163,13 @@ export function createReport(result: CalculationResult): File {
   doc.setFontSize(8);
   doc.text(formula, margin + 1, y, { lineHeightFactor: 1.346 });
   y += formula.length * 3.8 + 8;
+  if (adjustment.length) {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(...accent);
+    doc.text("Copy-time adjustment", margin, y + 1);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...ink);
+    doc.text(adjustment, margin, y + 6, { lineHeightFactor: 1.336 });
+    y += 10 + adjustment.length * 3.3;
+  }
   doc.setFontSize(6.5);
   doc.setTextColor(...muted);
   doc.text(note, margin, y, { lineHeightFactor: 1.308 });

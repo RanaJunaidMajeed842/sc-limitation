@@ -10,6 +10,8 @@ export type CalculationInput = {
 export type CalculationResult = CalculationInput & {
   copyDaysConsumed: number; totalCopyTime: number; rawFilingDays: number;
   totalTimeConsumed: number; remainingDays: number;
+  copyApplicationElapsedDays: number;
+  copyTimeRule: "inclusive" | "order-day-excluded" | "late-application";
 };
 export type FieldErrors = Partial<Record<keyof CalculationInput, string>>;
 const DAY = 86400000;
@@ -38,18 +40,35 @@ export function validateInput(input: CalculationInput): FieldErrors {
 }
 export function calculate(input: CalculationInput): CalculationResult {
   if (Object.keys(validateInput(input)).length) throw new Error("Invalid calculation input");
-  const copyDaysConsumed = (parseDay(input.copyGettingDate)! - parseDay(input.copyApplyDate)!) / DAY;
+  const copyApplicationElapsedDays = (parseDay(input.copyApplyDate)! - parseDay(input.impugnedDate)!) / DAY;
+  const copyElapsedDays = (parseDay(input.copyGettingDate)! - parseDay(input.copyApplyDate)!) / DAY;
+  // The cutoff is elapsed days: an application ON the last allowed day qualifies.
+  // A late application takes priority over copy-duration counting.
+  const copyTimeRule: CalculationResult["copyTimeRule"] = copyApplicationElapsedDays > input.givenCopyTime
+    ? "late-application"
+    : copyApplicationElapsedDays === 0 ? "order-day-excluded" : "inclusive";
+  const copyDaysConsumed = copyTimeRule === "late-application" ? 0
+    : copyElapsedDays + (copyTimeRule === "inclusive" ? 1 : 0);
   const rawFilingDays = (parseDay(input.filingDate)! - parseDay(input.impugnedDate)!) / DAY;
   const totalCopyTime = input.givenCopyTime + copyDaysConsumed;
   const totalTimeConsumed = rawFilingDays - input.publicHolidays;
-  return { ...input, copyDaysConsumed, rawFilingDays, totalCopyTime, totalTimeConsumed, remainingDays: totalCopyTime - totalTimeConsumed };
+  return { ...input, copyDaysConsumed, copyApplicationElapsedDays, copyTimeRule, rawFilingDays, totalCopyTime, totalTimeConsumed, remainingDays: totalCopyTime - totalTimeConsumed };
+}
+export function copyTimeDisclaimer(result: CalculationResult): string | null {
+  if (result.copyTimeRule === "late-application") {
+    return `Copy time is 0 days because the application was made ${result.copyApplicationElapsedDays} elapsed days after the order, exceeding the entered ${result.givenCopyTime}-day allowance. No copy-time extension is added; the given allowance remains unchanged.`;
+  }
+  if (result.copyTimeRule === "order-day-excluded") {
+    return `The copy application and impugned order share the same date, so that first day is excluded. Counting subsequent days through the copy receipt date gives ${result.copyDaysConsumed} days of copy time.`;
+  }
+  return null;
 }
 export function formatDate(date: string) {
   return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`));
 }
 export function resultRows(result: CalculationResult): [string, string][] {
   return [
-    ["Time to obtain copy", `${result.copyDaysConsumed} days`],
+    ["Copy time counted", `${result.copyDaysConsumed} days`],
     ["Given copy time", `${result.givenCopyTime} days`],
     ["Total copy time", `${result.totalCopyTime} days`],
     ["Order-to-filing period", `${result.rawFilingDays} days`],

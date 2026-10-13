@@ -40,7 +40,7 @@ test("first PDF export works after an offline restart on a narrow phone screen",
   await page.locator("#givenCopyTime").fill("30");
   await page.locator("#publicHolidays").fill("2");
   await page.getByRole("button", { name: "Calculate limitation" }).click();
-  await expect(page.getByText("2 days remaining", { exact: true })).toBeVisible();
+  await expect(page.getByText("3 days remaining", { exact: true })).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Save PDF" }).click();
   const download = await downloadPromise;
@@ -63,6 +63,51 @@ test("iPhone users receive Safari home-screen installation instructions", async 
   await expect(page.getByRole("dialog")).toContainText("Add to Home Screen");
   await expect(page.getByRole("button", { name: "Install on this device" })).toHaveCount(0);
   await context.close();
+});
+
+test("copy-time rules and explanations stay consistent in results, PDF and WhatsApp", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Ready for offline use", { exact: true })).toBeVisible();
+  await page.locator("#impugnedDate").fill("2026-01-01");
+  await page.locator("#filingDate").fill("2026-01-04");
+  await page.locator("#copyApplyDate").fill("2026-01-01");
+  await page.locator("#copyGettingDate").fill("2026-01-03");
+  await page.locator("#givenCopyTime").fill("60");
+  await page.getByRole("button", { name: "Calculate limitation" }).click();
+  await expect(page.getByLabel("Copy-time adjustment")).toContainText("first day is excluded");
+  await expect(page.locator("dl > div").filter({ hasText: "Copy time counted" })).toContainText("2 days");
+
+  await page.locator("#copyApplyDate").fill("2026-01-02");
+  await page.getByRole("button", { name: "Calculate limitation" }).click();
+  await expect(page.getByLabel("Copy-time adjustment")).toHaveCount(0);
+  await expect(page.locator("dl > div").filter({ hasText: "Copy time counted" })).toContainText("2 days");
+
+  await page.locator("#filingDate").fill("2026-03-10");
+  await page.locator("#copyApplyDate").fill("2026-03-02");
+  await page.locator("#copyGettingDate").fill("2026-03-04");
+  await page.getByRole("button", { name: "Calculate limitation" }).click();
+  await expect(page.getByLabel("Copy-time adjustment")).toHaveCount(0);
+  await expect(page.locator("dl > div").filter({ hasText: "Copy time counted" })).toContainText("3 days");
+
+  await page.locator("#copyApplyDate").fill("2026-03-03");
+  await page.getByRole("button", { name: "Calculate limitation" }).click();
+  await expect(page.getByLabel("Copy-time adjustment")).toContainText("61 elapsed days");
+  await expect(page.locator("dl > div").filter({ hasText: "Copy time counted" })).toContainText("0 days");
+  await expect(page.locator("dl > div").filter({ hasText: "Total copy time" })).toContainText("60 days");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Save PDF" }).click();
+  const download = await downloadPromise;
+  const content = (await readFile((await download.path())!)).toString();
+  expect(content).toContain("Copy-time adjustment");
+  expect(content).toContain("Copy time is 0 days");
+
+  await page.evaluate(() => { window.open = url => { document.documentElement.dataset.sharedUrl = String(url); return null; }; });
+  await page.getByRole("button", { name: "Share report" }).click();
+  await page.getByRole("button", { name: "Send summary on WhatsApp" }).click();
+  const sharedUrl = await page.locator("html").getAttribute("data-shared-url");
+  const summary = new URL(sharedUrl!).searchParams.get("text");
+  expect(summary).toContain("Copy time counted: 0 days");
+  expect(summary).toContain("61 elapsed days");
 });
 
 test("native install prompt is used once and installed apps hide install controls", async ({ page }) => {

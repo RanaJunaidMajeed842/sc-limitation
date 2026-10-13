@@ -26,16 +26,23 @@ Edit `lib/site-config.ts` to replace the builder placeholder and optionally add 
 
 ## Calculations
 
-The original HTML is preserved. Its formula is preserved in `lib/calculator.ts`:
+The original HTML is preserved as a reference. The current rules are implemented in `lib/calculator.ts`:
 
 ```
-copy duration = copy received date - copy application date
-total copy time = given copy time + copy duration
+application delay = copy application date - order date (elapsed days)
+if application delay > given copy time: counted copy time = 0
+otherwise if copy application date = order date:
+  counted copy time = copy received date - copy application date
+otherwise:
+  counted copy time = copy received date - copy application date + 1
+total copy time = given copy time + counted copy time
 net filing time = filing date - order date - public holidays
 remaining limitation = total copy time - net filing time
 ```
 
 Date arithmetic uses UTC calendar days to avoid daylight saving offsets. Inputs are validated for valid dates, chronological order and nonnegative whole-day allowances. Given copy time is required explicitly (0 is allowed); public holidays default to 0. The practitioner supplies eligible exclusions. The app does not determine court rules or automatically fetch holidays.
+
+Eligible copy periods include both the application and receipt dates, except that the first day is excluded when application and order dates coincide. An application exactly at the entered elapsed-day cutoff remains eligible: with an order on 1 Jan 2026 and a 60-day allowance, 2 Mar qualifies and 3 Mar receives zero copy time. The cutoff uses the entered allowance directly, without holiday or copy-duration extensions. A late application only sets the added copy time to zero; it does not erase the original given allowance. Same-day and late-application adjustments are explained in the result, PDF ticket and WhatsApp summary.
 
 ## PDF and sharing
 

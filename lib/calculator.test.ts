@@ -1,24 +1,61 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { calculate, validateInput, type CalculationInput } from "./calculator";
+import { calculate, copyTimeDisclaimer, validateInput, type CalculationInput } from "./calculator";
 import { createReport } from "./pdf";
 const input: CalculationInput = { reference: "Example", impugnedDate: "2026-01-01", filingDate: "2026-02-10", copyApplyDate: "2026-01-05", copyGettingDate: "2026-01-15", givenCopyTime: 30, publicHolidays: 2 };
-test("preserves original formula and breakdown", () => {
+test("counts eligible copy periods inclusively and retains the remaining-days formula", () => {
   const result = calculate(input);
-  assert.equal(result.copyDaysConsumed, 10);
+  assert.equal(result.copyDaysConsumed, 11);
   assert.equal(result.rawFilingDays, 40);
-  assert.equal(result.totalCopyTime, 40);
+  assert.equal(result.totalCopyTime, 41);
   assert.equal(result.totalTimeConsumed, 38);
-  assert.equal(result.remainingDays, 2);
+  assert.equal(result.remainingDays, 3);
+  assert.equal(result.copyTimeRule, "inclusive");
+  assert.equal(copyTimeDisclaimer(result), null);
 });
 test("handles exact allowance and exceeded allowance", () => {
-  assert.equal(calculate({ ...input, publicHolidays: 0 }).remainingDays, 0);
-  assert.equal(calculate({ ...input, filingDate: "2026-02-15", publicHolidays: 0 }).remainingDays, -5);
+  assert.equal(calculate({ ...input, filingDate: "2026-02-11", publicHolidays: 0 }).remainingDays, 0);
+  assert.equal(calculate({ ...input, filingDate: "2026-02-15", publicHolidays: 0 }).remainingDays, -4);
 });
 test("counts leap days and DST boundaries as calendar days", () => {
   const result = calculate({ ...input, impugnedDate: "2024-02-28", filingDate: "2024-03-11", copyApplyDate: "2024-03-09", copyGettingDate: "2024-03-11", publicHolidays: 0 });
   assert.equal(result.rawFilingDays, 12);
+  assert.equal(result.copyDaysConsumed, 3);
+});
+test("excludes the application day when it is the order day", () => {
+  const result = calculate({ ...input, impugnedDate: "2026-01-01", copyApplyDate: "2026-01-01", copyGettingDate: "2026-01-03", givenCopyTime: 60 });
   assert.equal(result.copyDaysConsumed, 2);
+  assert.equal(result.copyTimeRule, "order-day-excluded");
+  assert.match(copyTimeDisclaimer(result)!, /first day is excluded/);
+  assert.equal(calculate({ ...input, copyApplyDate: "2026-01-01", copyGettingDate: "2026-01-01" }).copyDaysConsumed, 0);
+});
+test("counts three days for Jan 1 through Jan 3 when the order was earlier", () => {
+  const result = calculate({ ...input, impugnedDate: "2025-12-31", copyApplyDate: "2026-01-01", copyGettingDate: "2026-01-03", givenCopyTime: 60 });
+  assert.equal(result.copyDaysConsumed, 3);
+  assert.equal(calculate({ ...input, copyGettingDate: input.copyApplyDate }).copyDaysConsumed, 1);
+});
+test("applications before and exactly at a 60-day cutoff remain eligible", () => {
+  for (const [application, elapsed, copyDays] of [["2026-03-01", 59, 4], ["2026-03-02", 60, 3]] as const) {
+    const result = calculate({ ...input, copyApplyDate: application, copyGettingDate: "2026-03-04", filingDate: "2026-03-10", givenCopyTime: 60, publicHolidays: 0 });
+    assert.equal(result.copyApplicationElapsedDays, elapsed);
+    assert.equal(result.copyDaysConsumed, copyDays);
+    assert.equal(result.copyTimeRule, "inclusive");
+    assert.equal(copyTimeDisclaimer(result), null);
+  }
+});
+test("late applications add zero copy time without removing the base allowance", () => {
+  const result = calculate({ ...input, copyApplyDate: "2026-03-03", copyGettingDate: "2026-03-05", filingDate: "2026-03-10", givenCopyTime: 60, publicHolidays: 0 });
+  assert.equal(result.copyApplicationElapsedDays, 61);
+  assert.equal(result.copyDaysConsumed, 0);
+  assert.equal(result.totalCopyTime, 60);
+  assert.equal(result.remainingDays, -8);
+  assert.equal(result.copyTimeRule, "late-application");
+  assert.match(copyTimeDisclaimer(result)!, /61 elapsed days/);
+  assert.equal(calculate({ ...result, publicHolidays: 10 }).copyDaysConsumed, 0);
+});
+test("zero allowance accepts an order-day application but excludes later applications", () => {
+  assert.equal(calculate({ ...input, copyApplyDate: "2026-01-01", copyGettingDate: "2026-01-03", givenCopyTime: 0 }).copyDaysConsumed, 2);
+  assert.equal(calculate({ ...input, givenCopyTime: 0 }).copyDaysConsumed, 0);
 });
 test("rejects impossible and incomplete dates", () => {
   assert.ok(validateInput({ ...input, impugnedDate: "2026-02-30" }).impugnedDate);
@@ -40,7 +77,8 @@ test("exports a PDF file containing the timeline, breakdown and result", async (
   assert.equal(file.name, "limitation-report-2026-02-10.pdf");
   const content = await file.text();
   assert.ok(content.startsWith("%PDF-"));
-  for (const label of ["LIMITATION PERIOD", "Case reference: Example", "Impugned order", "Copy applied for", "Public holidays excluded", "Remaining limitation", "DAYS REMAINING", "30 + 10 - 40 + 2 = 2 days"]) assert.ok(content.includes(label), `Missing ${label}`);
+  for (const label of ["LIMITATION PERIOD", "Case reference: Example", "Impugned order", "Copy applied for", "Copy time counted", "Public holidays excluded", "Remaining limitation", "DAYS REMAINING", "30 + 11 - 40 + 2 = 3 days"]) assert.ok(content.includes(label), `Missing ${label}`);
+  assert.ok(!content.includes("Copy-time adjustment"));
   assert.equal((content.match(/\/Type \/Page\b/g) || []).length, 1);
 });
 test("ticket stays on one narrow page with long references and large or exceeded results", async () => {
@@ -51,7 +89,20 @@ test("ticket stays on one narrow page with long references and large or exceeded
     const box = content.match(/\/MediaBox \[0 0 ([\d.]+) ([\d.]+)\]/);
     assert.ok(box);
     assert.ok(Math.abs(Number(box[1]) / (72 / 25.4) - 105) < 0.01);
-    assert.ok(Number(box[2]) / (72 / 25.4) < 220);
+    assert.ok(Number(box[2]) / (72 / 25.4) < 260);
     assert.ok(content.includes(result.remainingDays < 0 ? "DAYS OVER ALLOWANCE" : "DAYS REMAINING"));
+  }
+});
+test("PDF tickets include explanations for both copy-time adjustments on one page", async () => {
+  const examples = [
+    calculate({ ...input, copyApplyDate: "2026-01-01", copyGettingDate: "2026-01-03", givenCopyTime: 60 }),
+    calculate({ ...input, copyApplyDate: "2026-03-03", copyGettingDate: "2026-03-05", filingDate: "2026-03-10", givenCopyTime: 60, publicHolidays: 0 }),
+  ];
+  for (const result of examples) {
+    const content = await createReport(result).text();
+    assert.ok(content.includes("Copy-time adjustment"));
+    const extractedText = [...content.matchAll(/\(([^()]*)\)\s*Tj/g)].map(match => match[1]).join(" ");
+    assert.ok(extractedText.includes(copyTimeDisclaimer(result)!));
+    assert.equal((content.match(/\/Type \/Page\b/g) || []).length, 1);
   }
 });
