@@ -1,13 +1,41 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 export const metadata: Metadata = {
   title: "Limitation — Supreme Court Filing Calculator",
-  description: "A free limitation calculation tool for legal practitioners. Calculate, review and share your case timeline as a PDF.",
+  description:
+    "A free limitation calculation tool for legal practitioners. Calculate, review and share your case timeline as a PDF.",
   applicationName: "Limitation",
-  appleWebApp: { capable: true, title: "Limitation", statusBarStyle: "default" },
-  icons: { apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }] },
+  appleWebApp: {
+    capable: true,
+    title: "Limitation",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: [
+      {
+        url: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
 };
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#64152b", viewportFit: "cover" };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#64152b",
+  viewportFit: "cover",
+};
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <Analytics />
+      </body>
+    </html>
+  );
 }
